@@ -1,0 +1,208 @@
+document.addEventListener('DOMContentLoaded', function () {
+      'use strict';
+      var getURLParameter = function (name) {
+            var returnVal = decodeURIComponent((new RegExp(name + '=' + '(.+?)(&|$)').exec(location.search) || ['', null])[1]);
+            return returnVal;
+          },
+          // Open On Page Load the forward to friend dialog
+          autoOpenPanel = function () {
+            setTimeout(function () {
+              rootElement.classList.add('autoAnimateSlideDown');
+            }, 0);
+            setTimeout(function () {
+              document.querySelector('.ftf_toggleSwitch').style.fontSize = '140%';
+            }, 500);
+            setTimeout(function () {
+              document.querySelector('.ftf_fields_container').style.height = 'auto';
+              document.querySelector('.ftf_mainContent').classList.add('slideDownAnimation');
+            }, 500);
+          },
+          // add ftf dialog elements to the dom
+          appendElements = function () {
+            document.getElementsByTagName('body')[0].insertAdjacentHTML('beforeend',
+                '<div id="forwardtoFriendDropDown" style="display:none;">'
+                + '<div class="ftf_toggleSwitch" onClick="togglePanel()"><div class="ftf_icon"><img height="24" src="https://na-sjint.marketo.com/images/icons/ftf_arrows.png"></div><div>Forward to a Friend</div></div>'
+                + '<div class="ftf_mainContent">'
+                + '<div class="ftf_fields_container">'
+                + '  <ul>'
+                + '    <li class="ftf_fname ftf_required">'
+                + '      <div class="ftf_field"><label for="ftf_friend_fname">Friend\'s First Name:</label><input id="ftf_friend_fname" name="ftf_friend_fname" type="text" onClick="fnameError()"></div>'
+                + '      <div class="ftf_errorMessage">Required</div>'
+                + '    </li>'
+                + '    <li class="ftf_lname ftf_required">'
+                + '      <div class="ftf_field"><label for="ftf_friend_lname">Friend\'s Last Name:</label><input id="ftf_friend_lname" name="ftf_friend_lname" type="text" onClick="lnameError()"></div>'
+                + '      <div class="ftf_errorMessage">Required</div>'
+                + '    </li>'
+                + '    <li class="ftf_email ftf_required">'
+                + '      <div class="ftf_field"><label for="ftf_friend_email">Friend\'s Email:</label><input id="ftf_friend_email" name="ftf_friend_email" type="text" onClick="emailError()"></div>'
+                + '      <div class="ftf_errorMessage">Invalid email address</div>'
+                + '    </li>'
+                //+ '    <li><label for="ftf_friend_message">Message:</label><textarea rows="4" name="ftf_friend_message"></textarea></li>'
+                + '  </ul>'
+                + '  <div class="ftf_success_message">Successfully Sent</div>'
+                + '</div>'
+                + '<div class="ftf_buttonContainer">'
+                + '  <div class="ftf_state_initial"><button class="cancelButton" onclick="resetForm(this)">CANCEL</button><button class="sendButton" onClick="sendData()">SEND</button></div>'
+                + '  <div class="ftf_state_sent" style ="display:none"><button class="sendAnotherButton" onclick="resetForm(this)">SEND ANOTHER</button><button class="doneButton" onclick="resetForm(this)" >DONE</button></div>'
+                + '</div></div></div>'
+            );
+          },
+
+          // initialize the display of ftf elements
+          init = function () {
+            if (getURLParameter('ftf') === 'true') {
+              rootElement.style.display = 'block';
+              autoOpenPanel();
+              togglePanel();
+            }
+          };
+      appendElements();
+      var rootElement = document.querySelector('#forwardtoFriendDropDown');
+      setTimeout(init, 1000);
+    }
+);
+var isOpen = true;
+var path = (window.location.pathname).replace('/email/emailWebview', '/email/forwardToFriend');
+// validate email
+var validateEmail = function (email) {
+  var re = /^(([^<>()\[\]\\.,;:\s@\"]+(\.[^<>()\[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  return re.test(email);
+};
+// get parameter from URL
+var getURLParameter = function (name) {
+  var returnVal = decodeURIComponent((new RegExp(name + '=' + '(.+?)(&|$)').exec(location.search) || ['', null])[1]);
+  return returnVal;
+};
+var resetForm = function (e) {
+  var ele = document.querySelector('.ftf_mainContent');
+  for (var i = 0; i < ele.getElementsByTagName('input').length; i++) {
+    var inputChild = ele.getElementsByTagName('input')[i];
+    inputChild.value = '';
+    inputChild.removeAttribute('disabled');
+  }
+  for (i = 0; i < ele.getElementsByTagName('textarea').length; i++) {
+    var textChild = ele.getElementsByTagName('textarea')[i];
+    textChild.value = '';
+    textChild.removeAttribute('disabled');
+  }
+  for (i = 0; i < ele.getElementsByTagName('button').length; i++) {
+    var buttonChild = ele.getElementsByTagName('button')[i];
+    buttonChild.removeAttribute('disabled');
+  }
+  document.querySelector('.ftf_success_message').style.display = 'none';
+  document.querySelector('.ftf_buttonContainer .ftf_state_sent').style.display = 'none';
+  document.querySelector('.ftf_buttonContainer .ftf_state_initial').style.display = 'block';
+  //togglePanel();
+  if (e) {
+    var clickElement = e.className;  // get the dom element class name clicked.
+    if (clickElement != 'sendAnotherButton') {
+      togglePanel();
+    }
+  }
+};
+var togglePanel = function () {
+  var rootElement = document.querySelector('#forwardtoFriendDropDown');
+  if (isOpen) {
+    setTimeout(function () {
+      rootElement.classList.remove('autoAnimateSlideUp');
+      rootElement.classList.add('autoAnimateSlideDown');
+    }, 500);
+    setTimeout(function () {
+      document.querySelector('.ftf_toggleSwitch').style.fontSize = '140%';
+    }, 500);
+    setTimeout(function () {
+
+      document.querySelector('.ftf_mainContent').classList.remove('slideUpAnimation');
+      document.querySelector('.ftf_mainContent').classList.add('slideDownAnimation');
+      document.querySelector('.ftf_fields_container').style.height = 'auto';
+      document.querySelector('.ftf_icon img').style.top = '0px';
+    }, 1000);
+
+  } else {
+    document.querySelector('.ftf_mainContent').classList.add('slideUpAnimation');
+    document.querySelector('.ftf_mainContent').classList.remove('slideDownAnimation');
+    document.querySelector('.ftf_toggleSwitch').style.fontSize = '100%';
+    rootElement.classList.remove('autoAnimateSlideDown');
+    rootElement.classList.add('autoAnimateSlideUp');
+    setTimeout(function () {
+      document.querySelector('.ftf_fields_container').style.height = 'auto';
+      document.querySelector('.ftf_icon img').style.top = '-12px';
+    }, 1000);
+  }
+  isOpen = !isOpen;
+};
+var completedAction = function (message) {
+  document.querySelector('.ftf_fields_container').style.height = '125px';
+  resetForm();
+  document.querySelector('.ftf_buttonContainer .ftf_state_initial').style.display = 'none';
+  document.querySelector('.ftf_buttonContainer .ftf_state_sent').style.display = 'block';
+  document.querySelector('.ftf_success_message').innerHTML = message;
+  document.querySelector('.ftf_success_message').style.display = 'block';
+};
+
+
+var fnameError = function () {
+  document.querySelector('.ftf_fname').classList.remove('error');
+};
+var lnameError = function () {
+  document.querySelector('.ftf_lname').classList.remove('error');
+};
+var emailError = function () {
+  document.querySelector('.ftf_email').classList.remove('error');
+};
+var sendData = function () {
+  let values = [], hasError = false;
+  let inputVal = document.querySelector('.ftf_mainContent');
+  for (var i = 0; i < inputVal.getElementsByTagName('input').length; i++) {
+    var childValue = inputVal.getElementsByTagName('input')[i].value;
+    values.push(childValue);
+  }
+  if (values[0] === '') {
+    document.querySelector('.ftf_mainContent li.ftf_fname').classList.add('error');
+    hasError = true;
+  }
+  if (values[1] === '') {
+    document.querySelector('.ftf_mainContent li.ftf_lname').classList.add('error');
+    hasError = true;
+  }
+  if (!validateEmail(values[2])) {
+    document.querySelector('.ftf_mainContent li.ftf_email').classList.add('error');
+    hasError = true;
+  }
+  if (hasError) {
+    return;
+  }
+  let ele = document.querySelector('.ftf_mainContent');
+  for (i = 0; i < ele.getElementsByTagName('input').length; i++) {
+    var child = ele.getElementsByTagName('input')[i];
+    child.setAttribute('disabled', 'disabled');
+  }
+  for (i = 0; i < ele.getElementsByTagName('textarea').length; i++) {
+    child = ele.getElementsByTagName('textarea')[i];
+    child.setAttribute('disabled', 'disabled');
+  }
+  for (i = 0; i < ele.getElementsByTagName('button').length; i++) {
+    child = ele.getElementsByTagName('button')[i];
+    child.setAttribute('disabled', 'disabled');
+  }
+  let params = new URLSearchParams();
+  params.append('fname', values[0]);
+  params.append('lname', values[1]);
+  params.append('emailAddress', values[2]);
+  params.append('mkt_tok', window.__mktTokVal || getURLParameter('mkt_tok'));
+  let url = (path +'?'+ params.toString());
+  let xhttp = new XMLHttpRequest();
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4) {
+      if(this.status == 200 && this.response != ''){
+        completedAction(this.response);
+      }
+      else {
+        completedAction('An error occurred in forwarding your email.');
+      }
+    }
+  };
+  xhttp.open('GET', url, true);
+  xhttp.send();
+
+};
